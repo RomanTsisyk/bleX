@@ -156,6 +156,12 @@ class BleGattServer(
             value: ByteArray
         ) {
             Log.d(Constants.TAG, "GATT Server: Descriptor write request from ${device.address}")
+
+            if (descriptor.uuid == CLIENT_CHARACTERISTIC_CONFIG_UUID) {
+                // Handle Client Configuration Descriptor writes
+                // Enable or disable notifications
+            }
+
             if (responseNeeded) {
                 bluetoothGattServer?.sendResponse(
                     device,

@@ -3,7 +3,6 @@ package io.github.romantsisyk.blex.connection
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.content.Context
@@ -75,26 +74,30 @@ class BleConnection(
     @OptIn(ExperimentalCoroutinesApi::class)
     @SuppressLint("MissingPermission")
     suspend fun requestMtu(desiredMtu: Int): Int = suspendCancellableCoroutine { continuation ->
-        val gatt = connectionStateMachine.bluetoothGatt
-            ?: return@suspendCancellableCoroutine continuation.resumeWithException(
-                IllegalStateException("BluetoothGatt is null")
-            )
+        val gatt = bGatt
 
-        val callback = object : BluetoothGattCallback() {
-            @SuppressLint("MissingPermission")
-            override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    continuation.resume(mtu, null)
-                } else {
-                    continuation.resumeWithException(
-                        RuntimeException("MTU negotiation failed with status $status")
-                    )
-                }
-                gatt.setCharacteristicNotification(null, false)
+        val key = "mtu_request"
+
+        connectionStateMachine.mtuChangeCallbacks[key] = { mtu, status ->
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                continuation.resume(mtu, null)
+            } else {
+                continuation.resumeWithException(
+                    RuntimeException("MTU negotiation failed with status $status")
+                )
             }
+            connectionStateMachine.mtuChangeCallbacks.remove(key)
         }
 
-        gatt.requestMtu(desiredMtu)
+        val success = gatt.requestMtu(desiredMtu)
+        if (!success) {
+            connectionStateMachine.mtuChangeCallbacks.remove(key)
+            continuation.resumeWithException(RuntimeException("Failed to initiate MTU request."))
+        }
+
+        continuation.invokeOnCancellation {
+            connectionStateMachine.mtuChangeCallbacks.remove(key)
+        }
     }
 
     /**
@@ -111,14 +114,33 @@ class BleConnection(
         rxPhy: Int = BluetoothDevice.PHY_LE_2M,
         phyOptions: Int = BluetoothDevice.PHY_OPTION_NO_PREFERRED
     ) = suspendCancellableCoroutine<Unit> { continuation ->
-        val gatt = connectionStateMachine.bluetoothGatt
-            ?: return@suspendCancellableCoroutine continuation.resumeWithException(
-                IllegalStateException("BluetoothGatt is null")
+        val gatt = bGatt
+
+        val key = "phy_update"
+
+        connectionStateMachine.phyUpdateCallbacks[key] = { tx, rx, status ->
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                continuation.resume(Unit, null)
+            } else {
+                continuation.resumeWithException(
+                    RuntimeException("PHY update failed with status: $status")
+                )
+            }
+            connectionStateMachine.phyUpdateCallbacks.remove(key)
+        }
+
+        try {
+            gatt.setPreferredPhy(txPhy, rxPhy, phyOptions)
+        } catch (e: Exception) {
+            connectionStateMachine.phyUpdateCallbacks.remove(key)
+            continuation.resumeWithException(
+                RuntimeException("Failed to initiate PHY update: ${e.message}", e)
             )
+        }
 
-        gatt.setPreferredPhy(txPhy, rxPhy, phyOptions)
-
-        continuation.resume(Unit, null)
+        continuation.invokeOnCancellation {
+            connectionStateMachine.phyUpdateCallbacks.remove(key)
+        }
     }
 
     /**
@@ -130,12 +152,30 @@ class BleConnection(
     @SuppressLint("MissingPermission")
     suspend fun readCharacteristic(characteristic: BluetoothGattCharacteristic): ByteArray =
         suspendCancellableCoroutine { continuation ->
-            val gatt = connectionStateMachine.bluetoothGatt
-                ?: return@suspendCancellableCoroutine continuation.resumeWithException(
-                    IllegalStateException("BluetoothGatt is null")
-                )
+            val gatt = bGatt
 
-            gatt.readCharacteristic(characteristic)
+            // Use a unique key for tracking
+            val key = characteristic.uuid.toString()
+            connectionStateMachine.readCharacteristicCallbacks[key] = { status, value ->
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    continuation.resume(value, null)
+                } else {
+                    continuation.resumeWithException(
+                        RuntimeException("Characteristic read failed with status: $status")
+                    )
+                }
+                connectionStateMachine.readCharacteristicCallbacks.remove(key)
+            }
+
+            val success = gatt.readCharacteristic(characteristic)
+            if (!success) {
+                connectionStateMachine.readCharacteristicCallbacks.remove(key)
+                continuation.resumeWithException(RuntimeException("Failed to initiate characteristic read."))
+            }
+
+            continuation.invokeOnCancellation {
+                connectionStateMachine.readCharacteristicCallbacks.remove(key)
+            }
         }
 
     /**
@@ -149,15 +189,31 @@ class BleConnection(
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
     ) = suspendCancellableCoroutine<Unit> { continuation ->
-        val gatt = connectionStateMachine.bluetoothGatt
-            ?: return@suspendCancellableCoroutine continuation.resumeWithException(
-                IllegalStateException("BluetoothGatt is null")
-            )
+        val gatt = bGatt
 
         characteristic.value = value
 
-        if (!gatt.writeCharacteristic(characteristic)) {
-            continuation.resumeWithException(RuntimeException("Failed to write characteristic"))
+        // Use a unique key for tracking
+        val key = characteristic.uuid.toString()
+        connectionStateMachine.writeCharacteristicCallbacks[key] = { status ->
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                continuation.resume(Unit, null)
+            } else {
+                continuation.resumeWithException(
+                    RuntimeException("Characteristic write failed with status: $status")
+                )
+            }
+            connectionStateMachine.writeCharacteristicCallbacks.remove(key)
+        }
+
+        val success = gatt.writeCharacteristic(characteristic)
+        if (!success) {
+            connectionStateMachine.writeCharacteristicCallbacks.remove(key)
+            continuation.resumeWithException(RuntimeException("Failed to initiate characteristic write."))
+        }
+
+        continuation.invokeOnCancellation {
+            connectionStateMachine.writeCharacteristicCallbacks.remove(key)
         }
     }
 
@@ -170,18 +226,35 @@ class BleConnection(
     @SuppressLint("MissingPermission")
     fun observeCharacteristicNotifications(characteristic: BluetoothGattCharacteristic): Flow<ByteArray> =
         callbackFlow {
-            val gatt = connectionStateMachine.bluetoothGatt
-                ?: throw IllegalStateException("BluetoothGatt is null")
+            val gatt = bGatt
 
             gatt.setCharacteristicNotification(characteristic, true)
 
             // Configure descriptor for notifications
             val descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG_UUID)
-            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-            gatt.writeDescriptor(descriptor)
+            if (descriptor != null) {
+                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                val success = gatt.writeDescriptor(descriptor)
+                if (!success) {
+                    close(RuntimeException("Failed to write descriptor for notifications."))
+                }
+            } else {
+                close(RuntimeException("CCCD descriptor not found for characteristic ${characteristic.uuid}."))
+            }
+
+            // Register a callback to emit notification values
+            val notificationCallback: (ByteArray) -> Unit = { value: ByteArray ->
+                val result = trySend(value)
+                if (!result.isSuccess) {
+                    Log.e(Constants.TAG, "Failed to send notification value for characteristic ${characteristic.uuid}")
+                }
+            }
+
+            connectionStateMachine.notificationCallbacks[characteristic.uuid] = notificationCallback
 
             awaitClose {
                 gatt.setCharacteristicNotification(characteristic, false)
+                connectionStateMachine.notificationCallbacks.remove(characteristic.uuid)
             }
         }
 
@@ -193,6 +266,11 @@ class BleConnection(
     fun bond(): Flow<BondState> {
         return bondManager?.bondDevice(device) ?: flow { }
     }
+
+    private val bGatt: BluetoothGatt
+        get() = connectionStateMachine.bluetoothGatt
+            ?: throw IllegalStateException("BluetoothGatt is null")
+
 
     companion object {
         val CLIENT_CHARACTERISTIC_CONFIG_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
