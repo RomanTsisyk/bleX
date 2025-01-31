@@ -32,7 +32,6 @@ class BleGattCallback(
         connectionStateMachine.handlePhyUpdate(gatt, txPhy, rxPhy, status)
     }
 
-    @Deprecated("Deprecated in Java")
     override fun onCharacteristicRead(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic,
