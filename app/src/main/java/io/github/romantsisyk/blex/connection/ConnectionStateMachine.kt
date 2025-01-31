@@ -15,15 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-sealed class ConnectionState {
-    data object Disconnected : ConnectionState()
-    data object Connecting : ConnectionState()
-    data object Connected : ConnectionState()
-    data object DiscoveringServices : ConnectionState()
-    data object Ready : ConnectionState()
-    data class Error(val message: String) : ConnectionState()
-}
-
 class ConnectionStateMachine(
     private val context: Context,
     private val device: BluetoothDevice,
