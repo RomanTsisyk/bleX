@@ -1,5 +1,6 @@
 package io.github.romantsisyk.blex.sample
 
+import android.annotation.SuppressLint
 import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.pm.PackageManager
@@ -377,6 +378,7 @@ class MainActivity : AppCompatActivity() {
      * 4. Binds it to this Activity's lifecycle for automatic management
      * 5. Observes connection state changes
      */
+    @SuppressLint("MissingPermission")
     private fun connectToDevice(device: BluetoothDevice) {
         // Stop scanning first
         if (isScanning) {

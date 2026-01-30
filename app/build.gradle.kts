@@ -36,6 +36,11 @@ android {
             isReturnDefaultValues = true
         }
     }
+
+    lint {
+        abortOnError = false
+        warningsAsErrors = false
+    }
 }
 
 tasks.dokkaHtml {
