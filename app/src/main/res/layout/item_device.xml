@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Device List Item Layout for BLE-X Sample App
+
+    Displays information about a discovered BLE device:
+    - Device name (or "Unknown Device" if not available)
+    - MAC address
+    - Optional: Signal strength (RSSI)
+
+    Usage with ScanResultAdapter:
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_device, parent, false)
+            return ViewHolder(view)
+        }
+-->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="0dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    android:foreground="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Bluetooth icon -->
+        <ImageView
+            android:id="@+id/deviceIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/stat_sys_data_bluetooth"
+            android:contentDescription="Bluetooth device"
+            android:layout_marginEnd="16dp"
+            app:tint="?attr/colorPrimary" />
+
+        <!-- Device info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/deviceNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:ellipsize="end"
+                android:maxLines="1"
+                tools:text="My BLE Device" />
+
+            <TextView
+                android:id="@+id/deviceAddressTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"
+                android:fontFamily="monospace"
+                tools:text="AA:BB:CC:DD:EE:FF" />
+
+        </LinearLayout>
+
+        <!-- RSSI indicator (optional) -->
+        <LinearLayout
+            android:id="@+id/rssiContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/rssiIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                android:contentDescription="Signal strength"
+                app:tint="@android:color/darker_gray" />
+
+            <TextView
+                android:id="@+id/rssiTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="@android:color/darker_gray"
+                tools:text="-65 dBm" />
+
+        </LinearLayout>
+
+        <!-- Connect arrow -->
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="Connect"
+            android:layout_marginStart="8dp"
+            app:tint="@android:color/darker_gray" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

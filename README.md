@@ -1,5 +1,8 @@
 # BLE-X
 
+![CI](https://github.com/RomanTsisyk/bleX/workflows/CI/badge.svg)
+![License](https://img.shields.io/github/license/RomanTsisyk/bleX)
+
 **BLE-X** is a Bluetooth Low Energy (BLE) communication library for Android, designed to provide a structured and reliable way to interact with BLE devices.
 
 > ⚠ **This project is actively in development. Features may change, and breaking updates are possible.**

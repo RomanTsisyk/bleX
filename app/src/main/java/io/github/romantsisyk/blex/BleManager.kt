@@ -14,6 +14,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
+/**
+ * Central manager for Bluetooth Low Energy (BLE) operations.
+ *
+ * This singleton class provides a unified interface for scanning, connecting to,
+ * and managing BLE devices. It handles the lifecycle of BLE connections and ensures
+ * proper resource management across the application.
+ *
+ * Usage:
+ * ```kotlin
+ * val bleManager = BleManager.getInstance(context)
+ * bleManager.scanDevices().collect { device ->
+ *     // Handle discovered device
+ * }
+ * ```
+ *
+ * @property context Application context used for BLE operations. Must be application context
+ *                   to prevent memory leaks.
+ * @see BleConnection
+ * @see BleScanner
+ */
 class BleManager private constructor(private val context: Context) {
 
     private val bluetoothAdapter: BluetoothAdapter =
@@ -24,10 +44,26 @@ class BleManager private constructor(private val context: Context) {
 
     private val connections = mutableMapOf<String, BleConnection>() // Keyed by device MAC address
 
+    /**
+     * Companion object providing singleton access to [BleManager].
+     *
+     * Uses double-checked locking pattern to ensure thread-safe singleton instantiation
+     * while maintaining good performance after initial creation.
+     */
     companion object {
         @Volatile
         private var INSTANCE: BleManager? = null
 
+        /**
+         * Returns the singleton instance of [BleManager].
+         *
+         * This method is thread-safe and uses double-checked locking to ensure
+         * only one instance is created. The provided context is converted to
+         * application context to prevent memory leaks.
+         *
+         * @param context Any valid Android [Context]. Will be converted to application context internally.
+         * @return The singleton [BleManager] instance.
+         */
         fun getInstance(context: Context): BleManager {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: BleManager(context.applicationContext).also { INSTANCE = it }
@@ -36,9 +72,17 @@ class BleManager private constructor(private val context: Context) {
     }
 
     /**
-     * Scans for BLE devices and emits discovered devices through a Flow.
+     * Scans for nearby BLE devices and emits discovered devices through a Flow.
      *
-     * @return Flow emitting [BluetoothDevice].
+     * This method filters results to only include BLE devices (excluding Classic Bluetooth)
+     * and removes duplicates based on device address. The scan continues until the Flow
+     * is cancelled by the collector.
+     *
+     * Requires `BLUETOOTH_SCAN` permission on Android 12+ or `ACCESS_FINE_LOCATION` on earlier versions.
+     *
+     * @return A [Flow] emitting unique [BluetoothDevice] instances as they are discovered.
+     * @throws SecurityException if required Bluetooth permissions are not granted.
+     * @see BleScanner
      */
     @SuppressLint("MissingPermission")
     fun scanDevices(): Flow<BluetoothDevice> {
@@ -49,14 +93,23 @@ class BleManager private constructor(private val context: Context) {
     }
 
     /**
-     * Connects to a BLE device and returns a [BleConnection] instance.
+     * Establishes a connection to the specified BLE device.
      *
-     * @param device BluetoothDevice to connect to.
-     * @return [BleConnection] instance.
+     * If a connection to the device already exists, returns the existing [BleConnection]
+     * instance. Otherwise, creates a new connection and initiates the connection process.
+     * The connection is stored internally and can be retrieved for subsequent operations.
+     *
+     * @param device The [BluetoothDevice] to connect to.
+     * @return A [BleConnection] instance representing the connection to the device.
+     * @throws IllegalStateException if the connection map is in an inconsistent state.
+     * @throws SecurityException if required Bluetooth permissions are not granted.
+     * @see disconnect
+     * @see disconnectAll
      */
     fun connect(device: BluetoothDevice): BleConnection {
         if (connections.containsKey(device.address)) {
-            return connections[device.address]!!
+            return connections[device.address]
+                ?: throw IllegalStateException("No connection found for device ${device.address}")
         }
         val bleConnection = BleConnection(context, device, bondManager)
         connections[device.address] = bleConnection
@@ -65,9 +118,14 @@ class BleManager private constructor(private val context: Context) {
     }
 
     /**
-     * Disconnects from a BLE device and removes it from active connections.
+     * Disconnects from the specified BLE device and removes it from active connections.
      *
-     * @param device BluetoothDevice to disconnect from.
+     * This method gracefully closes the connection and releases associated resources.
+     * If no connection exists for the specified device, this method does nothing.
+     *
+     * @param device The [BluetoothDevice] to disconnect from.
+     * @see connect
+     * @see disconnectAll
      */
     fun disconnect(device: BluetoothDevice) {
         connections[device.address]?.disconnect()
@@ -75,7 +133,13 @@ class BleManager private constructor(private val context: Context) {
     }
 
     /**
-     * Disconnects from all connected BLE devices.
+     * Disconnects from all connected BLE devices and clears the connection registry.
+     *
+     * This method should be called during application cleanup or when BLE functionality
+     * is no longer needed to ensure all resources are properly released.
+     *
+     * @see connect
+     * @see disconnect
      */
     fun disconnectAll() {
         connections.values.forEach { it.disconnect() }
@@ -83,9 +147,16 @@ class BleManager private constructor(private val context: Context) {
     }
 
     /**
-     * Checks if the app has the necessary permissions to perform BLE operations.
+     * Checks if the application has all necessary permissions for BLE operations.
      *
-     * @return True if permissions are granted, false otherwise.
+     * This method verifies that scan, connect, and advertise permissions are all granted.
+     * On Android 12 (API 31) and above, this includes `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`,
+     * and `BLUETOOTH_ADVERTISE` permissions.
+     *
+     * This is a suspend function that runs on the IO dispatcher.
+     *
+     * @return `true` if all required BLE permissions are granted, `false` otherwise.
+     * @see PermissionsHelper
      */
     @RequiresApi(Build.VERSION_CODES.S)
     suspend fun hasPermissions(): Boolean = withContext(Dispatchers.IO) {

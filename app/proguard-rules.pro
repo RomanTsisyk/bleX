@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep BLE callback classes (called via reflection by Android)
+-keep class * extends android.bluetooth.BluetoothGattCallback { *; }
+-keep class * extends android.bluetooth.BluetoothGattServerCallback { *; }
+-keep class * extends android.bluetooth.le.AdvertiseCallback { *; }
+-keep class * extends android.bluetooth.le.ScanCallback { *; }
+
+# Keep model classes
+-keep class io.github.romantsisyk.blex.models.** { *; }

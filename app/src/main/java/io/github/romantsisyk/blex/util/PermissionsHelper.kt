@@ -7,6 +7,31 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 
+/**
+ * Utility object for checking Bluetooth Low Energy (BLE) related permissions.
+ *
+ * This helper simplifies the complexity of BLE permission handling across different
+ * Android versions. Starting from Android 12 (API 31, codename "S"), new granular
+ * Bluetooth permissions were introduced:
+ * - [Manifest.permission.BLUETOOTH_SCAN] - Required for scanning BLE devices
+ * - [Manifest.permission.BLUETOOTH_CONNECT] - Required for connecting to BLE devices
+ * - [Manifest.permission.BLUETOOTH_ADVERTISE] - Required for advertising as a BLE peripheral
+ *
+ * On older Android versions (below API 31), [Manifest.permission.ACCESS_FINE_LOCATION]
+ * is typically required for BLE scanning operations.
+ *
+ * ## Usage Example
+ * ```kotlin
+ * if (PermissionsHelper.hasScanPermissions(context)) {
+ *     // Safe to start BLE scanning
+ *     bleScanner.startScan()
+ * } else {
+ *     // Request BLUETOOTH_SCAN or ACCESS_FINE_LOCATION permission
+ * }
+ * ```
+ *
+ * @see <a href="https://developer.android.com/develop/connectivity/bluetooth/bt-permissions">Android Bluetooth Permissions</a>
+ */
 object PermissionsHelper {
 
     /**

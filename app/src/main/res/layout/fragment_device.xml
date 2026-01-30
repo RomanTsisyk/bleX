@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Device Fragment Layout for BLE-X Sample App
+
+    This layout provides a UI for interacting with a connected BLE device:
+    - Device info header (name, address, connection state)
+    - Connection controls (connect, disconnect, bond)
+    - Operation buttons (read device info, battery, heart rate)
+    - Log/output area
+
+    Usage:
+        class DeviceFragment : Fragment() {
+            override fun onCreateView(
+                inflater: LayoutInflater,
+                container: ViewGroup?,
+                savedInstanceState: Bundle?
+            ): View {
+                return inflater.inflate(R.layout.fragment_device, container, false)
+            }
+        }
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".sample.DeviceFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Device Info Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/deviceNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    tools:text="My BLE Device" />
+
+                <TextView
+                    android:id="@+id/deviceAddressTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:fontFamily="monospace"
+                    android:layout_marginTop="4dp"
+                    tools:text="AA:BB:CC:DD:EE:FF" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+
+                    <View
+                        android:id="@+id/connectionIndicator"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@android:color/holo_red_light" />
+
+                    <TextView
+                        android:id="@+id/connectionStateTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:layout_marginStart="8dp"
+                        tools:text="Disconnected" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Connection Controls Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connection"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/connectButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Connect"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/disconnectButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Disconnect"
+                android:enabled="false"
+                android:layout_marginHorizontal="4dp" />
+
+            <Button
+                android:id="@+id/bondButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Bond"
+                android:enabled="false"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+        <!-- Operations Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Operations"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/readDeviceInfoButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Device Info"
+                android:enabled="false"
+                android:textSize="12sp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/readBatteryButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Battery"
+                android:enabled="false"
+                android:textSize="12sp"
+                android:layout_marginHorizontal="4dp" />
+
+            <Button
+                android:id="@+id/toggleNotificationsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Heart Rate"
+                android:enabled="false"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+        <!-- Log Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="4dp"
+            app:cardBackgroundColor="#F5F5F5"
+            android:minHeight="200dp">
+
+            <ScrollView
+                android:id="@+id/logScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp">
+
+                <TextView
+                    android:id="@+id/logTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:textSize="11sp"
+                    android:fontFamily="monospace"
+                    android:textColor="#333333"
+                    tools:text="[12:34:56] Ready to connect\n[12:34:57] Connecting...\n[12:34:58] Connected" />
+
+            </ScrollView>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Custom Write Section (expandable for advanced users) -->
+        <LinearLayout
+            android:id="@+id/customWriteSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Custom Write"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/serviceUuidEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Service UUID"
+                android:inputType="text"
+                android:layout_marginBottom="4dp" />
+
+            <EditText
+                android:id="@+id/characteristicUuidEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Characteristic UUID"
+                android:inputType="text"
+                android:layout_marginBottom="4dp" />
+
+            <EditText
+                android:id="@+id/valueEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Value (hex: 01 02 03)"
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/customWriteButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Write Custom Value"
+                android:enabled="false" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
