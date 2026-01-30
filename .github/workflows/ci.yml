@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,17 +32,12 @@ jobs:
     - name: Run unit tests
       run: ./gradlew test
 
-    - name: Generate test report
-      uses: dorny/test-reporter@v1
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: Unit Tests
-        path: app/build/test-results/test*/*.xml
-        reporter: java-junit
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      if: always()
+        name: test-results
+        path: app/build/test-results/
 
   lint:
     runs-on: ubuntu-latest
@@ -49,10 +48,13 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
     - name: Run Android Lint
       run: ./gradlew lint
     - name: Upload lint results
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: lint-results
         path: app/build/reports/lint-results*.html
