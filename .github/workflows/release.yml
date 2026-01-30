@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -16,10 +16,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Publish to Maven Central
-      run: ./gradlew publish
-      env:
-        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-        SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build release
+      run: ./gradlew assembleRelease
+
+    - name: Upload release AAR
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-aar
+        path: app/build/outputs/aar/*.aar
