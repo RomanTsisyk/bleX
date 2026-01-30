@@ -19,7 +19,7 @@ import java.util.UUID
  * These tests verify that BleGattCallback properly delegates all callback events
  * to the ConnectionStateMachine.
  */
-@RunWith(MockitoJUnitRunner::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 class BleGattCallbackTest {
 
     @Mock

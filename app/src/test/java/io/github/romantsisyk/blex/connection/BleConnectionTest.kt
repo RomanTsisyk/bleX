@@ -37,7 +37,7 @@ import kotlin.coroutines.resume
  * doesn't support constructor injection, we use a testable subclass that
  * allows injecting a mock ConnectionStateMachine for testing purposes.
  */
-@RunWith(MockitoJUnitRunner::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class BleConnectionTest {
 

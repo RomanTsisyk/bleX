@@ -17,40 +17,40 @@ class ModelsTest {
     @Test
     fun `ConnectionState Disconnected is correct type`() {
         val state: ConnectionState = ConnectionState.Disconnected
-        assertTrue(state is ConnectionState.Disconnected)
+        assertEquals(ConnectionState.Disconnected, state)
     }
 
     @Test
     fun `ConnectionState Connecting is correct type`() {
         val state: ConnectionState = ConnectionState.Connecting
-        assertTrue(state is ConnectionState.Connecting)
+        assertEquals(ConnectionState.Connecting, state)
     }
 
     @Test
     fun `ConnectionState Connected is correct type`() {
         val state: ConnectionState = ConnectionState.Connected
-        assertTrue(state is ConnectionState.Connected)
+        assertEquals(ConnectionState.Connected, state)
     }
 
     @Test
     fun `ConnectionState DiscoveringServices is correct type`() {
         val state: ConnectionState = ConnectionState.DiscoveringServices
-        assertTrue(state is ConnectionState.DiscoveringServices)
+        assertEquals(ConnectionState.DiscoveringServices, state)
     }
 
     @Test
     fun `ConnectionState Ready is correct type`() {
         val state: ConnectionState = ConnectionState.Ready
-        assertTrue(state is ConnectionState.Ready)
+        assertEquals(ConnectionState.Ready, state)
     }
 
     @Test
     fun `ConnectionState Error contains message`() {
         val errorMessage = "Connection failed"
-        val state = ConnectionState.Error(errorMessage)
+        val state: ConnectionState = ConnectionState.Error(errorMessage)
 
         assertTrue(state is ConnectionState.Error)
-        assertEquals(errorMessage, state.message)
+        assertEquals(errorMessage, (state as ConnectionState.Error).message)
     }
 
     // ============ BondState Tests ============

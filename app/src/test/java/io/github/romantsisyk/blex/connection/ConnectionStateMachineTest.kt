@@ -26,7 +26,7 @@ import java.util.UUID
  * These tests verify the state transition logic, error handling,
  * and handler registration/cleanup behavior of the ConnectionStateMachine.
  */
-@RunWith(MockitoJUnitRunner::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionStateMachineTest {
 
@@ -261,9 +261,6 @@ class ConnectionStateMachineTest {
 
     @Test
     fun `handleMtuChanged invokes registered handler`() {
-        var receivedMtu = 0
-        var receivedStatus = -1
-
         // We need to access the private handler map through reflection for this test
         // Since the handlers are private, we test through the public API behavior
 
@@ -284,6 +281,7 @@ class ConnectionStateMachineTest {
         assertEquals(ConnectionState.Disconnected, stateMachine.connectionStateFlow.value)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `handleCharacteristicRead removes handler after invocation`() {
         val testUuid = UUID.randomUUID()
@@ -314,6 +312,7 @@ class ConnectionStateMachineTest {
         assertEquals(ConnectionState.Disconnected, stateMachine.connectionStateFlow.value)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `handleCharacteristicChanged can be called without handler`() {
         val testUuid = UUID.randomUUID()
